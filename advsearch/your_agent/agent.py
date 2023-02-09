@@ -21,6 +21,15 @@ WEIGHTS = [[4, -3, 2, 2, 2, 2, -3, 4],
            [-3, -4, -1, -1, -1, -1, -4, -3],
            [4, -3, 2, 2, 2, 2, -3, 4]]
 
+# WEIGHTS = [[100, -20, 10, 5, 5, 10, -20, 100],
+#            [-20, -50, -2, -2, -2, -2, -50, -20],
+#            [10, -2, -1, -1, -1, -1, -2, 10],
+#            [5, -2, -1, -1, -1, -1, -2, 5],
+#            [5, -2, -1, -1, -1, -1, -2, 5],
+#            [10, -2, -1, -1, -1, -1, -2, 10],
+#            [-20, -50, -2, -2, -2, -2, -50, -20],
+#            [100, -20, 10, 5, 5, 10, -20, 100]]
+
 class Node():
     def __init__(self, the_board, opponent, parent, weight, children, move):
         self.parent   = parent
@@ -65,9 +74,9 @@ class Node():
 
 def max_weight(node,color, depth, alpha, beta):
     if depth > MAX_DEPTH:
-        return node.weight
+        return [node.weight,node]
     else:
-        v = MIN 
+        result = [MIN,node]
 
         while depth <= MAX_DEPTH:
 
@@ -78,18 +87,23 @@ def max_weight(node,color, depth, alpha, beta):
             else:
                 for child in node.children:
                     depth = depth + 1
-                    v     = max(v,min_weight(child,child.opponent,depth,alpha,beta))
-                    alpha = max(alpha,v)
+
+                    before = result[0]
+                    after     = max(result[0],min_weight(child,child.opponent,depth,alpha,beta)[0])
+                    if(after != before):
+                        result = [after,child]
+
+                    alpha = max(alpha,result[0])
 
                     if alpha >= beta:
                         break
-    return v
+    return result
 
 def min_weight (node, color, depth, alpha, beta):
     if depth > MAX_DEPTH:
-        return node.weight
+        return [node.weight,node]
     else:
-        v = MAX
+        result = [MAX,node]
 
         while depth <= MAX_DEPTH:
 
@@ -100,18 +114,22 @@ def min_weight (node, color, depth, alpha, beta):
             else:
                 for child in node.children:
                     depth = depth + 1
-                    v     = min(v,max_weight(child,child.opponent,depth,alpha,beta))
-                    beta  = min(beta,v)
+                    before = result[0]
+                    after     = min(result[0],max_weight(child,child.opponent,depth,alpha,beta)[0])
+                    if(after != before):
+                        result = [after,child]
+                    beta  = min(beta,result[0])
 
                     if beta <= alpha:
                         break
-    return v
+    return result
 
 # Percorre os nodos expandidos até encontrar o que possui o peso retornado pelo algoritmo alfa beta
 def get_move_position(node,weight):
     children = node.children
 
     for child in children:
+        print(child.weight)
         if child.weight == weight:
             return child.move
         elif child.has_children():
@@ -145,8 +163,10 @@ def alpha_beta_pruning(board, color):
         node     = Node(board,opponent,None,0,[],())
 
         v = max_weight(node,color,depth,MIN,MAX)
-    
-        return get_move_position(node,v)
+        chosen_node = v[1]
+
+        print(v)
+        return chosen_node.move
 
 def make_move(state: GameState) -> Tuple[int, int]:
     """
@@ -154,4 +174,6 @@ def make_move(state: GameState) -> Tuple[int, int]:
     :param state: state to make the move
     :return: (int, int) tuple with x, y coordinates of the move (remember: 0 is the first row/column)
     """
-    return alpha_beta_pruning(state.board,state.player)
+    result = alpha_beta_pruning(state.board,state.player)
+    print(result)
+    return result
