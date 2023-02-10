@@ -5,7 +5,6 @@ from ..othello.gamestate import GameState
 from os import PathLike
 import random
 import sys
-from copy import deepcopy
 
 MIN = -sys.maxsize -1
 MAX = sys.maxsize
@@ -31,9 +30,9 @@ WEIGHTS = [[4, -3, 2, 2, 2, 2, -3, 4],
 #            [100, -20, 10, 5, 5, 10, -20, 100]]
 
 class Node():
-    def __init__(self, the_board, opponent, parent, weight, children, move):
+    def __init__(self, board, opponent, parent, weight, children, move):
         self.parent   = parent
-        self.board    = the_board
+        self.board    = board
         self.opponent = opponent 
         self.weight   = weight
         self.children = children
@@ -45,18 +44,18 @@ class Node():
 
         if board.is_terminal_state() is False:
 
-            moves = board._legal_moves.get(color)
+            moves = board.legal_moves(color)
 
             for move in moves:
                 x = move[0]
                 y = move[1]
 
-                new_board  = deepcopy(board)
-                new_weight = WEIGHTS[y][x]
-                new_board.process_move(move,color)
-                opponent   = new_board.opponent(color)
+                node_board  = board.copy()
+                node_weight = WEIGHTS[y][x]
+                node_board.process_move(move,color)
+                opponent = node_board.opponent(color)
 
-                child = Node(new_board,opponent,parent,new_weight,[], move)
+                child = Node(node_board,opponent,parent,node_weight,[], move)
 
                 self.children.append(child)
 
@@ -72,7 +71,7 @@ class Node():
         else:
             return False
 
-def max_weight(node,color, depth, alpha, beta):
+def max_player(node,color, depth, alpha, beta):
     if depth > MAX_DEPTH:
         return [node.weight,node]
     else:
@@ -81,6 +80,7 @@ def max_weight(node,color, depth, alpha, beta):
         while depth <= MAX_DEPTH:
 
             if node.has_children() == False:
+                #print("max expandindo cor " + color)
                 node.expand(color)
             if node.no_moves_left(): 
                 break
@@ -89,7 +89,7 @@ def max_weight(node,color, depth, alpha, beta):
                     depth = depth + 1
 
                     before = result[0]
-                    after     = max(result[0],min_weight(child,child.opponent,depth,alpha,beta)[0])
+                    after     = max(result[0],min_player(child,child.opponent,depth,alpha,beta)[0])
                     if(after != before):
                         result = [after,child]
 
@@ -99,7 +99,7 @@ def max_weight(node,color, depth, alpha, beta):
                         break
     return result
 
-def min_weight (node, color, depth, alpha, beta):
+def min_player (node, color, depth, alpha, beta):
     if depth > MAX_DEPTH:
         return [node.weight,node]
     else:
@@ -108,6 +108,7 @@ def min_weight (node, color, depth, alpha, beta):
         while depth <= MAX_DEPTH:
 
             if node.has_children() == False:
+                #print("min expandindo cor " + color)
                 node.expand(color)
             if node.no_moves_left(): 
                 break
@@ -115,7 +116,7 @@ def min_weight (node, color, depth, alpha, beta):
                 for child in node.children:
                     depth = depth + 1
                     before = result[0]
-                    after     = min(result[0],max_weight(child,child.opponent,depth,alpha,beta)[0])
+                    after     = min(result[0],max_player(child,child.opponent,depth,alpha,beta)[0])
                     if(after != before):
                         result = [after,child]
                     beta  = min(beta,result[0])
@@ -125,34 +126,33 @@ def min_weight (node, color, depth, alpha, beta):
     return result
 
 
-# def get_best_move(moves):
-#     best_move_weight = MIN
+def get_best_move(moves):
+    best_move_weight = MIN
+    for move in moves:
+        x = move[0]
+        y = move[1]
 
-#     for move in moves:
-#         x = move[0]
-#         y = move[1]
+        weight = WEIGHTS[y][x]
 
-#         weight = WEIGHTS[y][x]
-
-#         if weight > best_move_weight:
-#             best_move = move
-#             best_move_weight = weight
+        if weight > best_move_weight:
+            best_move = move
+            best_move_weight = weight
     
-#     return best_move
+    return best_move
 
 def minimax_alphabeta(board, color):
     if board.is_terminal_state() == True or board.has_legal_move(color) == False:
         return (-1, -1)
     elif board.piece_count.get('EMPTY') == 60: #jogada inicial
         return random.choice(board.legal_moves(color))
-    #elif board.has_legal_move(board.opponent(color)) == False: 
-    #    return get_best_move(board.legal_moves(color))
+    elif board.has_legal_move(board.opponent(color)) == False: 
+        return get_best_move(board.legal_moves(color))
     else:
         depth = 1
         opponent = board.opponent(color)
         node = Node(board,opponent,None,0,[],())
 
-        v = max_weight(node,color,depth,MIN,MAX)
+        v = max_player(node,color,depth,MIN,MAX)
         chosen_node = v[1]
 
         #print(v)
