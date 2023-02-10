@@ -7,8 +7,8 @@ import random
 import sys
 from copy import deepcopy
 
-MIN = -99999999
-MAX = 99999999
+MIN = -sys.maxsize -1
+MAX = sys.maxsize
 
 MAX_DEPTH = 6
 
@@ -82,7 +82,7 @@ def max_weight(node,color, depth, alpha, beta):
 
             if node.has_children() == False:
                 node.expand(color)
-            if node.no_moves_left(): #se após expandir o nodo ele segue sem filhos, não existem mais jogadas possiveis
+            if node.no_moves_left(): 
                 break
             else:
                 for child in node.children:
@@ -109,7 +109,7 @@ def min_weight (node, color, depth, alpha, beta):
 
             if node.has_children() == False:
                 node.expand(color)
-            if node.no_moves_left(): #se após expandir o nodo ele segue sem filhos, não existem mais jogadas possiveis
+            if node.no_moves_left(): 
                 break
             else:
                 for child in node.children:
@@ -124,48 +124,38 @@ def min_weight (node, color, depth, alpha, beta):
                         break
     return result
 
-# Percorre os nodos expandidos até encontrar o que possui o peso retornado pelo algoritmo alfa beta
-def get_move_position(node,weight):
-    children = node.children
 
-    for child in children:
-        print(child.weight)
-        if child.weight == weight:
-            return child.move
-        elif child.has_children():
-            get_move_position(child, weight)
+# def get_best_move(moves):
+#     best_move_weight = MIN
 
-# Função chamada quando o oponente não possui jogadas
-def get_best_move(moves):
-    best_mov_weight = MIN
+#     for move in moves:
+#         x = move[0]
+#         y = move[1]
 
-    for move in moves:
-        x = move[0]
-        y = move[1]
+#         weight = WEIGHTS[y][x]
 
-        new_weight = WEIGHTS[y][x]
-
-        if new_weight > best_mov_weight:
-            best_mov_pos = move
+#         if weight > best_move_weight:
+#             best_move = move
+#             best_move_weight = weight
     
-    return best_mov_pos
+#     return best_move
 
-def alpha_beta_pruning(board, color):
+def minimax_alphabeta(board, color):
     if board.is_terminal_state() == True or board.has_legal_move(color) == False:
         return (-1, -1)
     elif board.piece_count.get('EMPTY') == 60: #jogada inicial
-        return random.choice(board._legal_moves[color])
-    elif board.has_legal_move(board.opponent(color)) == False: #oponente não tem mais jogadas
-        return get_best_move(board._legal_moves[color])
+        return random.choice(board.legal_moves(color))
+    #elif board.has_legal_move(board.opponent(color)) == False: 
+    #    return get_best_move(board.legal_moves(color))
     else:
-        depth    = 1
+        depth = 1
         opponent = board.opponent(color)
-        node     = Node(board,opponent,None,0,[],())
+        node = Node(board,opponent,None,0,[],())
 
         v = max_weight(node,color,depth,MIN,MAX)
         chosen_node = v[1]
 
-        print(v)
+        #print(v)
         return chosen_node.move
 
 def make_move(state: GameState) -> Tuple[int, int]:
@@ -174,6 +164,6 @@ def make_move(state: GameState) -> Tuple[int, int]:
     :param state: state to make the move
     :return: (int, int) tuple with x, y coordinates of the move (remember: 0 is the first row/column)
     """
-    result = alpha_beta_pruning(state.board,state.player)
+    result = minimax_alphabeta(state.board,state.player)
     print(result)
     return result
