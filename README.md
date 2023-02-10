@@ -16,7 +16,7 @@
  Analisando algumas dicas à jogadores iniciantes, notamos a repetição da menção de posições vantajosas. Foi então que decidimos usar como avaliação da posição uma tabela que retém o peso referente a cada posição do tabuleiro de Othello. Após algumas dificuldades que mencionaremos adiante, decidimos pelo uso de uma tabela que, para cada posição, atribuí um peso referente ao seu controle do tabuleiro e à quantos posições cobre.
 
 ## Estratégia de Parada
-Além de naturalmente pararmos quando não há mais jogadas disponíveis, paramos nossa descida obrigatoriamente quando o algoritmo chega à uma profundidade fixa de MAX_DEPTH (6).
+Além de naturalmente pararmos quando não há mais jogadas disponíveis, paramos nossa descida obrigatoriamente quando o algoritmo chega à uma profundidade fixa de MAX_DEPTH (8).
 
 
 ## Eventuais Melhorias
